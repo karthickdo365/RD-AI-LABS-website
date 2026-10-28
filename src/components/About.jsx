@@ -1,179 +1,225 @@
-import { ABOUT, VALUES, STATS, TEAM } from '../data'
-import { FiTarget, FiEye, FiUser } from 'react-icons/fi'
-import Reveal from './Reveal'
-import Counter from './Counter'
 
-const SECTION_BG = {
-  background:
-    'radial-gradient(50% 45% at 0% 0%, rgba(255,179,71,.30) 0%, rgba(255,179,71,0) 70%),' +
-    'radial-gradient(50% 50% at 100% 100%, rgba(111,156,240,.35) 0%, rgba(111,156,240,0) 70%),' +
-    '#fbf1ea',
+import { motion, useReducedMotion } from 'framer-motion'
+import { FiArrowRight, FiEye, FiTarget } from 'react-icons/fi'
+import { ABOUT } from '../data'
+
+const EASE = [0.22, 1, 0.36, 1]
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 18 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.55, ease: EASE },
+  },
 }
 
-const CARD =
-  'group relative overflow-hidden border border-white/60 bg-white/40 backdrop-blur-xl shadow-[0_10px_40px_-20px_rgba(120,70,60,.35)] ' +
-  'transition duration-300 hover:-translate-y-1.5 hover:bg-white/60 hover:shadow-[0_24px_50px_-18px_rgba(120,70,60,.45)] motion-reduce:transition-none motion-reduce:hover:translate-y-0'
-
-// Soft color glow that grows from the corner on hover
-function HoverGlow({ className = '' }) {
-  return (
-    <span
-      aria-hidden="true"
-      className={`pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-gradient-to-br from-orange-300 via-rose-300 to-indigo-300 opacity-0 blur-2xl transition duration-500 group-hover:scale-150 group-hover:opacity-70 motion-reduce:transition-none ${className}`}
-    />
-  )
+const stagger = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.05,
+    },
+  },
 }
 
-function Avatar({ member }) {
-  const initials = member.name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase()
-
-  return (
-    <div className="relative h-32 w-32">
-      {/* Gradient ring that spins on hover */}
-      <span
-        aria-hidden="true"
-        className="absolute inset-0 rounded-full opacity-0 transition duration-300 [animation-duration:3s] group-hover:animate-spin group-hover:opacity-100 motion-reduce:animate-none"
-        style={{ background: 'conic-gradient(from 0deg, #fb923c, #f43f5e, #6366f1, #38bdf8, #fb923c)' }}
-      />
-      <div className="absolute inset-1 overflow-hidden rounded-full bg-[#fbf1ea]">
-        {member.photo ? (
-          <img
-            src={member.photo}
-            alt={member.name}
-            loading="lazy"
-            className="h-full w-full rounded-full object-cover transition duration-500 group-hover:scale-110 motion-reduce:transition-none"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-orange-400 via-rose-400 to-indigo-500 font-display text-3xl font-bold text-white">
-            {initials || <FiUser />}
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
+const MISSION_VISION = [
+  {
+    title: 'Our Mission',
+    description:
+      ABOUT?.mission ||
+      'To build practical, user-focused digital solutions that help people and businesses move forward.',
+    icon: FiTarget,
+    accent: 'bg-sky-100 text-sky-700',
+  },
+  {
+    title: 'Our Vision',
+    description:
+      ABOUT?.vision ||
+      'To make modern technology more useful, accessible, and impactful through thoughtful innovation.',
+    icon: FiEye,
+    accent: 'bg-orange-100 text-orange-700',
+  },
+]
 
 export default function About() {
+  const reduceMotion = useReducedMotion()
+
   return (
-    <section id="about" className="section relative overflow-hidden" style={SECTION_BG}>
-      <div className="container-x relative">
-        {/* Heading */}
-        <div className="mb-12 lg:mb-16">
-          <h2 className="font-display text-3xl font-extrabold uppercase leading-[1.05] tracking-tight text-slate-900 sm:text-4xl lg:whitespace-nowrap lg:text-5xl">
-            Tap the untapped potential in your business
-          </h2>
-        </div>
+    <section
+      id="about"
+      className="relative isolate overflow-hidden bg-[#F7F3EF] px-5 py-16 sm:px-8 sm:py-20 lg:px-10 lg:py-24"
+    >
+      {/* Warm, premium background */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
+      >
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              'linear-gradient(105deg, transparent 10%, rgba(255,190,140,0.13) 28%, transparent 39%, rgba(125,190,235,0.15) 53%, rgba(190,187,240,0.12) 68%, transparent 82%)',
+          }}
+        />
 
-        {/* Story + mission/vision */}
-        <div className="grid items-start gap-10 lg:grid-cols-2">
-          <Reveal>
-            <div className="space-y-5 text-base leading-relaxed text-slate-700 sm:text-lg">
-              <h3 className="font-display text-2xl font-extrabold uppercase tracking-tight text-slate-950">
-                Our story
+        <div className="absolute -left-32 top-16 h-80 w-80 rounded-full bg-orange-200/30 blur-[100px]" />
+
+        <div className="absolute -right-24 top-24 h-96 w-96 rounded-full bg-sky-200/30 blur-[110px]" />
+
+        <div className="absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-violet-200/20 blur-[100px]" />
+      </div>
+
+      <div className="container-x relative mx-auto max-w-7xl">
+        <motion.div
+          variants={stagger}
+          initial={reduceMotion ? false : 'hidden'}
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.15 }}
+          className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16"
+        >
+          {/* LEFT: About content */}
+          <div className="min-w-0">
+            <motion.div variants={fadeUp}>
+              <span className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#D96D48]">
+                <span className="h-px w-8 bg-[#D96D48]" />
+                About RD AI Labs
+              </span>
+            </motion.div>
+
+            <motion.h2
+              variants={fadeUp}
+              className="mt-5 max-w-xl font-display text-[clamp(2.25rem,4.5vw,3.75rem)] font-semibold leading-[1.08] tracking-[-0.05em] text-[#202A35] [text-wrap:balance]"
+            >
+              Turning ideas into{' '}
+              <span className="bg-gradient-to-r from-[#4A82B7] via-[#7777C9] to-[#D98263] bg-clip-text text-transparent">
+                meaningful technology.
+              </span>
+            </motion.h2>
+
+            <motion.p
+              variants={fadeUp}
+              className="mt-5 max-w-xl text-sm leading-7 text-[#626975] sm:text-base sm:leading-8"
+            >
+              {ABOUT?.intro ||
+                'We combine thoughtful design and modern technology to create meaningful digital experiences and practical solutions.'}
+            </motion.p>
+
+            {/* Our story */}
+            <motion.div
+              variants={fadeUp}
+              className="mt-8 border-l-2 border-[#8BB8D8] pl-5"
+            >
+              <h3 className="font-display text-lg font-semibold tracking-tight text-[#202A35]">
+                Our Story
               </h3>
-              {ABOUT.story.map((p) => (
-                <p key={p}>{p}</p>
-              ))}
-            </div>
-          </Reveal>
 
-          <div className="grid gap-6 sm:grid-cols-2">
-            {[
-              { icon: FiTarget, title: 'Our Mission', text: ABOUT.mission },
-              { icon: FiEye, title: 'Our Vision', text: ABOUT.vision },
-            ].map((c, i) => (
-              <Reveal key={c.title} delay={i * 0.12}>
-                <div className={`${CARD} h-full rounded-3xl p-7`}>
-                  <HoverGlow />
-                  <span className="relative mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-white transition duration-300 group-hover:rotate-6 group-hover:scale-110 motion-reduce:transition-none">
-                    <c.icon size={24} />
-                  </span>
-                  <h3 className="relative font-display text-xl font-extrabold uppercase tracking-tight text-slate-950">
-                    {c.title}
-                  </h3>
-                  <p className="relative mt-3 text-sm leading-relaxed text-slate-700">{c.text}</p>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-
-        {/* Counters */}
-        <Reveal className="mt-20">
-          <div className="grid gap-8 rounded-[2rem] border border-white/60 bg-white/30 p-8 text-center shadow-[0_20px_60px_-20px_rgba(120,70,60,.35)] backdrop-blur-xl sm:grid-cols-3 sm:p-12">
-            {STATS.map((s) => (
-              <div
-                key={s.label}
-                className="transition duration-300 hover:scale-105 motion-reduce:hover:scale-100"
-              >
-                <div className="bg-gradient-to-r from-orange-600 via-rose-600 to-indigo-700 bg-clip-text font-display text-5xl font-extrabold text-transparent sm:text-6xl">
-                  <Counter to={s.value} suffix={s.suffix} />
-                </div>
-                <p className="mt-2 text-sm font-semibold text-slate-800">{s.label}</p>
+              <div className="mt-3 space-y-3 text-sm leading-7 text-[#626975] sm:text-[15px]">
+                {Array.isArray(ABOUT?.story) ? (
+                  ABOUT.story.map((paragraph, index) => (
+                    <p key={index}>{paragraph}</p>
+                  ))
+                ) : (
+                  <p>
+                    {ABOUT?.story ||
+                      'RD AI Labs brings creativity and engineering together to build digital products that solve real problems. Our focus is on useful, reliable, and accessible technology.'}
+                  </p>
+                )}
               </div>
-            ))}
-          </div>
-        </Reveal>
+            </motion.div>
 
-        {/* Values */}
-        <div className="mt-20">
-          <Reveal>
-            <h3 className="mb-8 text-center font-display text-2xl font-extrabold uppercase tracking-tight text-slate-950">
-              What we stand for
-            </h3>
-          </Reveal>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {VALUES.map((v, i) => (
-              <Reveal key={v.title} delay={i * 0.08}>
-                <div className={`${CARD} h-full rounded-2xl p-6`}>
-                  {/* underline that draws in on hover */}
-                  <span
-                    aria-hidden="true"
-                    className="absolute inset-x-0 bottom-0 h-1 origin-left scale-x-0 bg-gradient-to-r from-orange-500 via-rose-500 to-indigo-600 transition duration-500 group-hover:scale-x-100 motion-reduce:transition-none"
-                  />
-                  <v.icon
-                    className="mb-4 text-orange-600 transition duration-300 group-hover:scale-125 group-hover:text-indigo-700 motion-reduce:transition-none"
-                    size={26}
-                  />
-                  <h4 className="font-display text-lg font-extrabold uppercase tracking-tight text-slate-950">
-                    {v.title}
-                  </h4>
-                  <p className="mt-2 text-sm leading-relaxed text-slate-700">{v.desc}</p>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-        </div>
+            <motion.div variants={fadeUp} className="mt-8">
+              <a
+                href="#contact"
+                className="group inline-flex min-h-11 items-center gap-3 rounded-full bg-[#202A35] py-2 pl-6 pr-2 text-sm font-semibold text-white shadow-[0_8px_24px_-12px_rgba(32,42,53,0.55)] transition duration-300 hover:-translate-y-0.5 hover:bg-[#344A5E] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2"
+              >
+                Let's work together
 
-        {/* Team */}
-        <div className="mt-24">
-          <Reveal>
-            <h3 className="mb-10 text-center font-display text-2xl font-extrabold uppercase tracking-tight text-slate-950">
-              Meet the team
-            </h3>
-          </Reveal>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {TEAM.map((m, i) => (
-              <Reveal key={i} delay={i * 0.08}>
-                <div className={`${CARD} flex flex-col items-center rounded-3xl p-8 text-center`}>
-                  <HoverGlow className="-left-10 right-auto" />
-                  <div className="relative">
-                    <Avatar member={m} />
-                  </div>
-                  <h4 className="relative mt-5 font-display text-lg font-extrabold uppercase tracking-tight text-slate-950">
-                    {m.name}
-                  </h4>
-                  <p className="relative text-sm font-medium text-indigo-700">{m.role}</p>
-                </div>
-              </Reveal>
-            ))}
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 transition-transform duration-300 group-hover:translate-x-0.5">
+                  <FiArrowRight size={15} aria-hidden="true" />
+                </span>
+              </a>
+            </motion.div>
           </div>
-        </div>
+
+          {/* RIGHT: Image and mission / vision */}
+          <motion.div
+            variants={fadeUp}
+            className="relative mx-auto w-full max-w-[540px] lg:ml-auto"
+          >
+            {/* Technology image */}
+            <div className="group relative overflow-hidden rounded-[26px] border border-white/80 bg-white/60 p-2 shadow-[0_24px_65px_-32px_rgba(36,48,62,0.35)]">
+              <div className="relative aspect-[5/4] overflow-hidden rounded-[20px] bg-[#E6EAF0]">
+                <img
+                  src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1200&q=85"
+                  alt="Modern technology workspace with a collaborative team environment"
+                  loading="lazy"
+                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.035]"
+                />
+
+                {/* Soft image overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#182635]/75 via-transparent to-white/5" />
+
+                <div className="absolute inset-x-5 bottom-5 sm:inset-x-7 sm:bottom-7">
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-sky-200">
+                    Our approach
+                  </span>
+
+                  <h3 className="mt-2 max-w-sm font-display text-2xl font-semibold leading-tight tracking-[-0.035em] text-white sm:text-3xl">
+                    Innovation with purpose.
+                  </h3>
+
+                  <p className="mt-2 max-w-sm text-sm leading-6 text-white/80">
+                    Thoughtful ideas. Practical solutions. Technology that
+                    moves business forward.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Mission and vision cards */}
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {MISSION_VISION.map((item, index) => {
+                const Icon = item.icon
+
+                return (
+                  <motion.article
+                    key={item.title}
+                    initial={
+                      reduceMotion ? false : { opacity: 0, y: 14 }
+                    }
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, amount: 0.2 }}
+                    transition={{
+                      duration: reduceMotion ? 0 : 0.45,
+                      delay: reduceMotion ? 0 : index * 0.1,
+                      ease: EASE,
+                    }}
+                    whileHover={
+                      reduceMotion ? undefined : { y: -3 }
+                    }
+                    className="rounded-[20px] border border-white/90 bg-white/75 p-4 shadow-[0_8px_28px_-18px_rgba(36,48,62,0.24)] backdrop-blur-xl sm:p-5"
+                  >
+                    <div
+                      className={`flex h-10 w-10 items-center justify-center rounded-xl ${item.accent}`}
+                    >
+                      <Icon size={19} aria-hidden="true" />
+                    </div>
+
+                    <h3 className="mt-4 font-display text-base font-semibold tracking-tight text-[#202A35]">
+                      {item.title}
+                    </h3>
+
+                    <p className="mt-2 text-[13px] leading-6 text-[#626975]">
+                      {item.description}
+                    </p>
+                  </motion.article>
+                )
+              })}
+            </div>
+          </motion.div>
+        </motion.div>
       </div>
     </section>
   )

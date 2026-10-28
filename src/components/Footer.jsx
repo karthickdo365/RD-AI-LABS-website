@@ -5,16 +5,9 @@ import { FiArrowUp } from 'react-icons/fi'
 import { COMPANY, NAV_LINKS } from '../data'
 import { useGoTo } from '../hooks'
 
-const FOOTER_BG = {
-  background:
-    'radial-gradient(55% 80% at 0% 100%, rgba(255,179,71,.40) 0%, rgba(255,179,71,0) 70%),' +
-    'radial-gradient(50% 80% at 100% 100%, rgba(111,156,240,.40) 0%, rgba(111,156,240,0) 70%),' +
-    '#fbf1ea',
-}
-
 // Text link with a gradient underline that draws in on hover
 const LINK =
-  'relative inline-block text-slate-800 transition-colors hover:text-slate-950 ' +
+  'relative inline-block text-white transition-colors hover:text-white ' +
   "after:absolute after:-bottom-0.5 after:left-0 after:h-0.5 after:w-full after:origin-left after:scale-x-0 after:bg-gradient-to-r after:from-orange-500 after:via-rose-500 after:to-indigo-600 after:transition after:duration-300 hover:after:scale-x-100 motion-reduce:after:transition-none"
 
 export default function Footer() {
@@ -28,10 +21,7 @@ export default function Footer() {
   ]
 
   return (
-    <footer
-      className="relative overflow-hidden border-t border-slate-900/10 px-5 pb-8 pt-16 sm:px-8"
-      style={FOOTER_BG}
-    >
+    <footer className="relative overflow-hidden border-t border-white/10 bg-black px-5 pb-8 pt-16 text-white sm:px-8">
       <div className="container-x">
         <div className="grid gap-12 md:grid-cols-3">
           {/* Brand */}
@@ -41,23 +31,26 @@ export default function Footer() {
               aria-label="RD AI Labs home"
               className="group block"
             >
-              <img
-                src="/rd-ai-labs-logo.png"
-                alt="RD AI Labs logo"
-                className="h-14 w-14 object-contain transition duration-500 group-hover:rotate-[360deg] motion-reduce:transition-none motion-reduce:group-hover:rotate-0"
-              />
+              {/* white background behind the logo, larger size */}
+              <span className="flex h-24 w-24 items-center justify-center rounded-2xl bg-white p-2.5 shadow-lg">
+                <img
+                  src="/rd-ai-labs-logo.png"
+                  alt="RD AI Labs logo"
+                  className="h-full w-full object-contain transition duration-500 group-hover:rotate-[360deg] motion-reduce:transition-none motion-reduce:group-hover:rotate-0"
+                />
+              </span>
             </button>
-            <p className="mt-3 font-display text-lg font-extrabold uppercase tracking-tight text-slate-950">
+            <p className="mt-4 font-display text-lg font-extrabold uppercase tracking-tight text-white">
               {COMPANY.tagline}
             </p>
-            <p className="mt-3 max-w-xs text-sm leading-relaxed text-slate-700">
+            <p className="mt-3 max-w-xs text-sm leading-relaxed text-white">
               Modern software engineering, web applications and AI-powered solutions built around real-world needs.
             </p>
           </div>
 
           {/* Quick links */}
           <div>
-            <h3 className="mb-4 font-display text-lg font-extrabold uppercase tracking-tight text-slate-950">
+            <h3 className="mb-4 font-display text-lg font-extrabold uppercase tracking-tight text-white">
               Quick links
             </h3>
             <ul className="grid grid-cols-2 gap-x-6 gap-y-2.5 text-sm font-medium">
@@ -80,7 +73,7 @@ export default function Footer() {
 
           {/* Connect */}
           <div>
-            <h3 className="mb-4 font-display text-lg font-extrabold uppercase tracking-tight text-slate-950">
+            <h3 className="mb-4 font-display text-lg font-extrabold uppercase tracking-tight text-white">
               Connect
             </h3>
             <div className="flex gap-3">
@@ -91,7 +84,7 @@ export default function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={s.label}
-                  className="group relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl border border-white/60 bg-white/50 text-slate-900 backdrop-blur-md transition duration-300 hover:-translate-y-1.5 hover:border-transparent hover:text-white hover:shadow-[0_12px_24px_-10px_rgba(120,70,60,.6)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-950 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+                  className="group relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl border border-white/30 bg-white/10 text-white backdrop-blur-md transition duration-300 hover:-translate-y-1.5 hover:border-transparent hover:shadow-[0_12px_24px_-10px_rgba(255,255,255,.35)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white motion-reduce:transition-none motion-reduce:hover:translate-y-0"
                 >
                   {/* color fills up from the bottom on hover */}
                   <span
@@ -103,7 +96,7 @@ export default function Footer() {
               ))}
             </div>
 
-            <p className="mt-5 text-sm font-medium leading-relaxed text-slate-800">
+            <p className="mt-5 text-sm font-medium leading-relaxed text-white">
               <a href={`mailto:${COMPANY.email}`} className={LINK}>{COMPANY.email}</a>
               <br />
               {COMPANY.phone}
@@ -112,7 +105,7 @@ export default function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-14 flex flex-col items-center justify-between gap-4 border-t border-slate-900/15 pt-6 text-sm text-slate-700 sm:flex-row">
+        <div className="mt-14 flex flex-col items-center justify-between gap-4 border-t border-white/20 pt-6 text-sm text-white sm:flex-row">
           <p>© {new Date().getFullYear()} RD AI Labs. All rights reserved.</p>
 
           <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
@@ -121,7 +114,7 @@ export default function Footer() {
 
             <button
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="group inline-flex items-center gap-2 rounded-full bg-slate-950 px-4 py-2 text-xs font-bold text-white transition hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-950"
+              className="group inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-bold text-black transition hover:bg-slate-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
               Back to top
               <FiArrowUp className="transition-transform group-hover:-translate-y-1" />

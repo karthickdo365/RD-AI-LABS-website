@@ -1,219 +1,251 @@
-import { useState } from 'react'
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
-import { FiArrowUpRight } from 'react-icons/fi'
+
+import { motion, useReducedMotion } from 'framer-motion'
+import { FiArrowUpRight, FiLayers } from 'react-icons/fi'
 import { SERVICES } from '../data'
 import { useGoTo } from '../hooks'
 
-const ease = [0.22, 1, 0.36, 1]
+const EASE = [0.22, 1, 0.36, 1]
 
-// One warm/cool gradient per service, cycled
-const TONES = [
-  'from-orange-400 via-rose-400 to-amber-300',
-  'from-indigo-500 via-sky-400 to-cyan-300',
-  'from-rose-500 via-orange-400 to-yellow-300',
-  'from-violet-500 via-indigo-400 to-sky-300',
+const FOCUS =
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2'
+
+const containerVariants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.04,
+    },
+  },
+}
+
+const cardVariants = {
+  hidden: {
+    opacity: 0,
+    y: 16,
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.5,
+      ease: EASE,
+    },
+  },
+}
+
+/*
+  Each service has its own image.
+  Specific service names are checked before generic keywords.
+*/
+const serviceImages = [
+  {
+    keywords: ['custom software'],
+    image:
+      'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    keywords: ['website development', 'web development', 'website design', 'web design', 'website'],
+    image:
+      'https://images.unsplash.com/photo-1467232004584-a241de8bcf5d?auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    keywords: ['mobile app', 'mobile application'],
+    image:
+      'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    keywords: ['artificial intelligence', 'machine learning', 'ai solutions', 'ai development'],
+    image:
+      'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    keywords: ['ui/ux', 'ui ux', 'user experience', 'graphic design', 'product design'],
+    image:
+      'https://images.unsplash.com/photo-1558655146-d09347e92766?auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    keywords: ['cloud', 'devops', 'infrastructure'],
+    image:
+      'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    keywords: ['cybersecurity', 'cyber security', 'security'],
+    image:
+      'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    keywords: ['automation'],
+    image:
+      'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    keywords: ['data analytics', 'data science', 'analytics'],
+    image:
+      'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80',
+  },
 ]
 
-// Short lists shown inside the card (override per service with `tags` in data.js)
-const DETAILS = {
-  'custom software development': ['Enterprise apps', 'Internal tools', 'Cloud & APIs'],
-  'website development': ['WordPress', 'React', 'E-commerce'],
-  'mobile app development': ['Android', 'iOS'],
-  'ui/ux design': ['Research', 'Wireframes', 'Prototypes'],
-  'it consulting and support': ['Strategy', 'Infrastructure', 'Ongoing support'],
-  'digital marketing and seo': ['SEO', 'Social media', 'Paid ads'],
-  'ai and automation solutions': ['Chatbots', 'Workflow automation', 'Data insights'],
+const DEFAULT_IMAGE =
+  'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=800&q=80'
+
+function getServiceImage(title = '') {
+  const normalizedTitle = title.toLowerCase().trim()
+
+  const match = serviceImages.find(({ keywords }) =>
+    keywords.some((keyword) => normalizedTitle.includes(keyword))
+  )
+
+  return match?.image || DEFAULT_IMAGE
 }
 
 export default function Services() {
   const goTo = useGoTo()
-  const reduce = useReducedMotion()
-  const [active, setActive] = useState(0)
+  const reduceMotion = useReducedMotion()
 
-  const current = SERVICES[active]
-  const tone = TONES[active % TONES.length]
-  const tags = current.tags || DETAILS[current.title.toLowerCase()] || []
+  const visibleServices = (SERVICES || []).filter(
+    (service) =>
+      !service.title?.toLowerCase().includes('digital marketing')
+  )
+
+  if (!visibleServices.length) return null
 
   return (
     <section
       id="services"
-      className="section relative overflow-hidden"
-      style={{
-        background:
-          'radial-gradient(50% 50% at 100% 0%, rgba(111,156,240,.35) 0%, rgba(111,156,240,0) 70%),' +
-          'radial-gradient(50% 50% at 0% 100%, rgba(255,179,71,.35) 0%, rgba(255,179,71,0) 70%),' +
-          '#fbf1ea',
-      }}
+      className="relative overflow-hidden bg-white px-5 py-16 sm:px-8 sm:py-20 lg:px-10 lg:py-24"
     >
-      <div className="container-x relative">
-        {/* Heading */}
-        <div className="mb-12 lg:mb-16">
-          <h2 className="font-display text-3xl font-extrabold uppercase leading-[1.05] tracking-tight text-slate-900 sm:text-4xl lg:whitespace-nowrap lg:text-5xl">
-            Services built for modern business
-          </h2>
-          <p className="mt-5 max-w-xl text-base leading-relaxed text-slate-700 sm:text-lg">
-            End-to-end technology services, from the first idea to launch and beyond.
-          </p>
-        </div>
-
-        <div className="grid items-stretch gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
-          {/* Service index */}
-          <ul className="border-b border-slate-900/15">
-            {SERVICES.map((s, i) => {
-              const isActive = i === active
-              return (
-                <li key={s.title} className="border-t border-slate-900/15">
-                  <button
-                    onClick={() => setActive(i)}
-                    onMouseEnter={() => window.matchMedia('(hover: hover)').matches && setActive(i)}
-                    onFocus={() => setActive(i)}
-                    aria-expanded={isActive}
-                    className="group flex w-full items-center gap-4 py-5 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-950 sm:gap-6 sm:py-6"
-                  >
-                    <span
-                      className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full transition-colors duration-300 ${
-                        isActive ? 'bg-slate-950 text-white' : 'bg-white/60 text-slate-800'
-                      }`}
-                    >
-                      <s.icon size={22} />
-                    </span>
-
-                    <span
-                      className={`flex-1 font-display text-2xl font-extrabold uppercase leading-tight tracking-tight transition-colors duration-300 sm:whitespace-nowrap sm:text-2xl lg:text-3xl ${
-                        isActive ? 'text-slate-950' : 'text-slate-900/45 group-hover:text-slate-900/75'
-                      }`}
-                    >
-                      {s.title}
-                    </span>
-
-                    <FiArrowUpRight
-                      size={26}
-                      className={`shrink-0 transition-all duration-300 ${
-                        isActive ? 'translate-x-0 text-slate-950 opacity-100' : '-translate-x-2 opacity-0'
-                      }`}
-                    />
-                  </button>
-
-                  {/* Mobile / tablet: description opens inline */}
-                  <AnimatePresence initial={false}>
-                    {isActive && (
-                      <motion.div
-                        key="inline"
-                        initial={reduce ? false : { height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={reduce ? undefined : { height: 0, opacity: 0 }}
-                        transition={{ duration: 0.35, ease }}
-                        className="overflow-hidden lg:hidden"
-                      >
-                        {s.image && (
-                          <img
-                            src={s.image}
-                            alt={s.imageAlt || s.title}
-                            loading="lazy"
-                            className="mb-4 ml-16 h-44 w-[calc(100%-4rem)] rounded-2xl object-cover sm:ml-[4.5rem] sm:w-[calc(100%-4.5rem)]"
-                          />
-                        )}
-                        <p className="pb-6 pl-16 text-base leading-relaxed text-slate-700 sm:pl-[4.5rem]">
-                          {s.desc}
-                        </p>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </li>
-              )
-            })}
-          </ul>
-
-          {/* Desktop preview panel */}
-          <div className="relative hidden lg:block">
-            <div className="relative h-full overflow-hidden rounded-[2rem] border border-white/60 bg-white/30 p-10 shadow-[0_20px_60px_-20px_rgba(120,70,60,.35)] backdrop-blur-xl">
-              {/* Color field that changes with the active service */}
-              <div
+      <div className="container-x relative mx-auto max-w-7xl">
+        {/* Section heading */}
+        <motion.div
+          initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{
+            duration: reduceMotion ? 0 : 0.55,
+            ease: EASE,
+          }}
+          className="mb-9 flex flex-col gap-5 sm:mb-11 lg:flex-row lg:items-end lg:justify-between"
+        >
+          <div className="max-w-3xl">
+            <p className="mb-3 flex items-center gap-2.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-sky-700 sm:text-[11px]">
+              <span
+                className="h-px w-7 bg-sky-600"
                 aria-hidden="true"
-                className={`absolute -right-24 -top-24 h-80 w-80 rounded-full bg-gradient-to-br ${tone} opacity-70 blur-3xl transition-all duration-700`}
               />
-              <div
-                aria-hidden="true"
-                className={`absolute -bottom-28 -left-20 h-72 w-72 rounded-full bg-gradient-to-tr ${tone} opacity-40 blur-3xl transition-all duration-700`}
-              />
+              What we do
+            </p>
 
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={active}
-                  initial={reduce ? false : { opacity: 0, y: 18 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={reduce ? undefined : { opacity: 0, y: -12 }}
-                  transition={{ duration: 0.35, ease }}
-                  className="relative flex h-full flex-col justify-between gap-8"
-                >
-                  {current.image ? (
-                    <div className="relative h-56 overflow-hidden rounded-2xl shadow-lg">
-                      <img
-                        src={current.image}
-                        alt={current.imageAlt || current.title}
-                        loading="lazy"
-                        className="h-full w-full object-cover"
-                      />
-                      <div
-                        aria-hidden="true"
-                        className={`absolute inset-0 bg-gradient-to-tr ${tone} opacity-25 mix-blend-soft-light`}
-                      />
-                      <span
-                        className={`absolute bottom-3 left-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br ${tone} text-white shadow-lg`}
-                      >
-                        <current.icon size={24} />
-                      </span>
-                    </div>
-                  ) : (
-                    <div
-                      className={`flex h-24 w-24 items-center justify-center rounded-3xl bg-gradient-to-br ${tone} text-white shadow-lg`}
-                    >
-                      <current.icon size={44} />
-                    </div>
-                  )}
+            <h2 className="font-display text-[clamp(1.9rem,3.5vw,3.1rem)] font-semibold leading-[1.12] tracking-[-0.045em] text-slate-900">
+              Technology built around{' '}
+              <span className="text-slate-400">
+                your business goals.
+              </span>
+            </h2>
 
-                  <div>
-                    <h3 className="font-display text-3xl font-extrabold uppercase leading-tight tracking-tight text-slate-950">
-                      {current.title}
-                    </h3>
-                    <p className="mt-4 max-w-md text-lg leading-relaxed text-slate-800">
-                      {current.desc}
-                    </p>
-
-                    {tags.length > 0 && (
-                      <ul className="mt-6 flex flex-wrap gap-2">
-                        {tags.map((t) => (
-                          <li
-                            key={t}
-                            className="rounded-full border border-slate-900/20 bg-white/60 px-4 py-1.5 text-sm font-medium text-slate-900"
-                          >
-                            {t}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-
-                    <button
-                      onClick={() => goTo('contact')}
-                      className="group mt-8 inline-flex items-center gap-3 rounded-full bg-slate-950 px-7 py-3.5 text-sm font-bold uppercase tracking-wide text-white transition hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-950"
-                    >
-                      Talk to us
-                      <FiArrowUpRight className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                    </button>
-                  </div>
-                </motion.div>
-              </AnimatePresence>
-            </div>
+           
           </div>
 
-          {/* Mobile CTA */}
           <button
+            type="button"
             onClick={() => goTo('contact')}
-            className="inline-flex items-center justify-center gap-3 self-start rounded-full bg-slate-950 px-7 py-3.5 text-sm font-bold uppercase tracking-wide text-white lg:hidden"
+            className={`group inline-flex min-h-11 w-fit shrink-0 items-center justify-center gap-2.5 rounded-full border border-slate-200 bg-white px-5 py-2.5 text-[13px] font-semibold text-slate-800 transition duration-300 hover:-translate-y-0.5 hover:border-slate-400 hover:bg-slate-50 ${FOCUS}`}
           >
-            Talk to us <FiArrowUpRight />
+            Discuss your project
+            <FiArrowUpRight
+              size={16}
+              aria-hidden="true"
+              className="transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+            />
           </button>
-        </div>
+        </motion.div>
+
+        {/* Compact service cards */}
+        <motion.div
+          variants={containerVariants}
+          initial={reduceMotion ? false : 'hidden'}
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.06 }}
+          className="mx-auto grid max-w-6xl grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+        >
+          {visibleServices.map((service) => {
+            const image = getServiceImage(service.title)
+            const Icon = service.icon || FiLayers
+
+            return (
+              <motion.article
+                key={service.title}
+                variants={cardVariants}
+                whileHover={
+                  reduceMotion
+                    ? undefined
+                    : {
+                        y: -3,
+                        transition: { duration: 0.22 },
+                      }
+                }
+                className="group relative isolate min-w-0 overflow-hidden rounded-2xl bg-slate-100 shadow-sm ring-1 ring-slate-200/80 transition-shadow duration-300 hover:shadow-xl hover:shadow-slate-900/10"
+              >
+                {/* Card image */}
+                <img
+                  src={image}
+                  alt=""
+                  loading="lazy"
+                  className="absolute inset-0 -z-20 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105 motion-reduce:transition-none"
+                />
+
+                {/* Image overlay */}
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-0 -z-10 bg-gradient-to-t from-slate-950/95 via-slate-950/25 to-slate-900/10 transition-colors duration-500 group-hover:from-slate-950/95 group-hover:via-slate-950/65 group-hover:to-slate-950/25"
+                />
+
+                {/* Content */}
+                <div className="flex min-h-[245px] flex-col justify-end p-4 sm:min-h-[270px] sm:p-5">
+                  <div className="mb-auto flex items-start justify-between">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/30 bg-white/15 text-white backdrop-blur-md transition-colors duration-300 group-hover:bg-white/25">
+                      <Icon size={18} aria-hidden="true" />
+                    </div>
+
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full border border-white/30 bg-white/15 text-white backdrop-blur-md transition-all duration-300 group-hover:rotate-45 group-hover:bg-white group-hover:text-slate-900">
+                      <FiArrowUpRight
+                        size={17}
+                        aria-hidden="true"
+                      />
+                    </span>
+                  </div>
+
+                  {/* Always-visible title */}
+                  <h3 className="max-w-sm font-display text-lg font-semibold leading-snug tracking-tight text-white sm:text-xl">
+                    {service.title}
+                  </h3>
+
+                  {/* Reveal description on hover, focus, or touch */}
+                  <div className="grid grid-rows-[0fr] opacity-0 transition-[grid-template-rows,opacity,margin] duration-300 ease-out group-hover:mt-2.5 group-hover:grid-rows-[1fr] group-hover:opacity-100 group-focus-within:mt-2.5 group-focus-within:grid-rows-[1fr] group-focus-within:opacity-100 [@media(hover:none)]:mt-2.5 [@media(hover:none)]:grid-rows-[1fr] [@media(hover:none)]:opacity-100">
+                    <div className="overflow-hidden">
+                      <p className="text-[12px] leading-5 text-white/85 sm:text-[13px] sm:leading-6">
+                        {service.desc}
+                      </p>
+
+                      <button
+                        type="button"
+                        onClick={() => goTo('contact')}
+                        aria-label={`Discuss ${service.title}`}
+                        className={`mt-3 inline-flex min-h-8 items-center gap-2 text-xs font-semibold text-white underline decoration-white/40 underline-offset-4 transition-colors hover:text-sky-200 sm:text-[13px] ${FOCUS}`}
+                      >
+                        Learn more
+                        <FiArrowUpRight
+                          size={15}
+                          aria-hidden="true"
+                        />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </motion.article>
+            )
+          })}
+        </motion.div>
       </div>
     </section>
   )
