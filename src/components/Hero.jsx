@@ -1,11 +1,16 @@
+
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
-import { motion, useScroll, useReducedMotion, useTransform } from 'framer-motion'
+import {
+  motion,
+  useReducedMotion,
+  useScroll,
+  useTransform,
+} from 'framer-motion'
 import { FiArrowRight, FiChevronDown } from 'react-icons/fi'
 import { useGoTo } from '../hooks'
 
 const HeroScene = lazy(() => import('./HeroScene'))
 
-// Warm DXC-style gradient (orange -> coral -> lavender -> blue)
 const HERO_BG = {
   background:
     'radial-gradient(60% 70% at 0% 100%, #ffb347 0%, rgba(255,179,71,0) 70%),' +
@@ -15,37 +20,75 @@ const HERO_BG = {
     '#fbf1ea',
 }
 
-const GRAIN = {
-  backgroundImage:
-    "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
-}
+const EASE = [0.22, 1, 0.36, 1]
+const SCENE_MIN_WIDTH = 440
 
-function supports3D() {
-  if (typeof window === 'undefined') return false
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false
-  if (window.innerWidth < 1024) return false
-  if ((navigator.hardwareConcurrency || 8) <= 2) return false
-  if ((navigator.deviceMemory || 8) <= 2) return false
-  return true
-}
+function isLowEndDevice() {
+  if (typeof navigator === 'undefined') return false
 
-function HeroFallback() {
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-      <div className="absolute left-1/2 top-1/2 h-[340px] w-[340px] -translate-x-1/2 -translate-y-1/2 opacity-60 md:left-auto md:right-[6%] md:translate-x-0 md:opacity-100 lg:h-[520px] lg:w-[520px]">
-        <div className="spin-slow absolute inset-0 rounded-full border border-slate-900/25">
-          <span className="absolute -top-1.5 left-1/2 h-3 w-3 rounded-full bg-orange-400 shadow-[0_0_16px_4px_rgba(251,146,60,.7)]" />
-        </div>
+    (navigator.hardwareConcurrency || 8) <= 2 ||
+    (navigator.deviceMemory || 8) <= 2
+  )
+}
 
-        <div className="spin-rev absolute inset-[12%] rounded-full border border-indigo-900/25">
-          <span className="absolute -bottom-1.5 left-1/2 h-3 w-3 rounded-full bg-indigo-500 shadow-[0_0_16px_4px_rgba(99,102,241,.6)]" />
-        </div>
+function SceneFrame({ ready, active }) {
+  const frameRef = useRef(null)
+  const [frameWidth, setFrameWidth] = useState(0)
 
-        <div className="spin-slow absolute inset-[26%] rounded-full border border-rose-500/30" />
-        <div className="floaty absolute inset-[38%] rounded-full bg-gradient-to-br from-orange-400 via-rose-400 to-indigo-400 opacity-80 blur-xl" />
-        <div className="floaty absolute inset-[44%] rounded-full bg-gradient-to-br from-amber-300 to-orange-500 shadow-[0_0_40px_rgba(244,132,106,.6)]" />
+  useEffect(() => {
+    const element = frameRef.current
+    if (!element) return undefined
+
+    const update = () => setFrameWidth(element.clientWidth)
+    update()
+
+    if (typeof ResizeObserver === 'undefined') {
+      window.addEventListener('resize', update)
+      return () => window.removeEventListener('resize', update)
+    }
+
+    const observer = new ResizeObserver(update)
+    observer.observe(element)
+
+    return () => observer.disconnect()
+  }, [])
+
+  const designWidth = Math.max(SCENE_MIN_WIDTH, frameWidth)
+  const scale = frameWidth > 0 ? frameWidth / designWidth : 1
+
+  return (
+    <motion.div
+      className="mx-auto w-full max-w-[600px] px-1 sm:px-0 lg:col-span-6 lg:max-w-[720px]"
+      initial={false}
+      animate={
+        ready
+          ? { opacity: 1, y: 0 }
+          : { opacity: 0, y: 18 }
+      }
+      transition={{ duration: 0.7, delay: 0.2, ease: EASE }}
+    >
+      <div
+        ref={frameRef}
+        className="relative aspect-[4/3] w-full"
+      >
+        <div
+          className="absolute left-0 top-0 origin-top-left"
+          style={{
+            width: designWidth,
+            transform: `scale(${scale})`,
+          }}
+        >
+          <Suspense
+            fallback={
+              <div className="aspect-[4/3] w-full" aria-hidden="true" />
+            }
+          >
+            <HeroScene active={active} ready={ready} />
+          </Suspense>
+        </div>
       </div>
-    </div>
+    </motion.div>
   )
 }
 
@@ -53,45 +96,34 @@ const stagger = {
   hidden: {},
   show: {
     transition: {
-      staggerChildren: 0.14,
-      delayChildren: 0.1,
+      staggerChildren: 0.1,
+      delayChildren: 0.08,
     },
   },
 }
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 26 },
+  hidden: { opacity: 0, y: 20 },
   show: {
     opacity: 1,
     y: 0,
-    transition: {
-      duration: 0.7,
-      ease: [0.22, 1, 0.36, 1],
-    },
+    transition: { duration: 0.65, ease: EASE },
   },
 }
 
 const headline = {
   hidden: {},
   show: {
-    transition: { staggerChildren: 0.09 },
+    transition: { staggerChildren: 0.07 },
   },
 }
 
 const word = {
-  hidden: {
-    opacity: 0,
-    y: 40,
-    filter: 'blur(8px)',
-  },
+  hidden: { opacity: 0, y: 22 },
   show: {
     opacity: 1,
     y: 0,
-    filter: 'blur(0px)',
-    transition: {
-      duration: 0.7,
-      ease: [0.22, 1, 0.36, 1],
-    },
+    transition: { duration: 0.6, ease: EASE },
   },
 }
 
@@ -104,30 +136,25 @@ const WORDS = [
   { t: 'Solutions', g: true },
 ]
 
-export default function Hero({ ready }) {
+export default function Hero({ ready = true }) {
   const goTo = useGoTo()
-  const ref = useRef(null)
+  const sectionRef = useRef(null)
 
-  const [enable3D, setEnable3D] = useState(false)
   const [inView, setInView] = useState(true)
+  const [lowEnd, setLowEnd] = useState(false)
 
-  const prefersReducedMotion = useReducedMotion()
+  const reduceMotion = useReducedMotion()
   const { scrollY } = useScroll()
 
-  // Scroll-linked motion. One mapping works in BOTH directions:
-  //  - scrolling down: the text slides left and fades out
-  //  - scrolling up:   the same animation plays in reverse (text slides back and fades in)
-  // It is always fully visible at the top of the page.
-  const textX = useTransform(scrollY, [0, 400], [0, -80])
-  const textOpacity = useTransform(scrollY, [0, 320], [1, 0])
+  const textX = useTransform(scrollY, [0, 400], [0, -35])
+  const textOpacity = useTransform(scrollY, [0, 360], [1, 0])
 
   useEffect(() => {
-    setEnable3D(supports3D())
+    setLowEnd(isLowEndDevice())
   }, [])
 
-  // Stop the 3D scene rendering when the hero is off-screen.
   useEffect(() => {
-    const element = ref.current
+    const element = sectionRef.current
 
     if (!element || typeof IntersectionObserver === 'undefined') {
       return undefined
@@ -146,86 +173,44 @@ export default function Hero({ ready }) {
   return (
     <section
       id="home"
-      ref={ref}
+      ref={sectionRef}
       style={HERO_BG}
-      className="relative flex min-h-screen items-center overflow-hidden px-5 pb-20 pt-32 sm:px-8"
+      className="relative isolate flex min-h-[100svh] items-center overflow-hidden px-5 pb-16 pt-28 sm:px-8 sm:pt-32 lg:px-8 lg:pb-20 lg:pt-28"
     >
-      {/* Background effects */}
+      {/* Soft decorative glow */}
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.12] mix-blend-multiply"
-        style={GRAIN}
         aria-hidden="true"
-      />
+        className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
+      >
+        <div className="absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/20 blur-3xl sm:h-96 sm:w-96" />
+      </div>
 
-      <div
-        className="pointer-events-none absolute -left-40 top-10 h-[480px] w-[480px] rounded-full bg-orange-300/40 blur-[140px]"
-        aria-hidden="true"
-      />
-
-      <div
-        className="pointer-events-none absolute -right-32 bottom-0 h-[520px] w-[520px] rounded-full bg-indigo-300/40 blur-[150px]"
-        aria-hidden="true"
-      />
-
-      <div
-        className="pointer-events-none absolute right-1/3 top-1/4 h-72 w-72 rounded-full bg-rose-300/30 blur-[120px]"
-        aria-hidden="true"
-      />
-
-      {/* 3D visual or lightweight fallback */}
-      {enable3D ? (
-        <div
-          className="pointer-events-none absolute inset-y-0 right-0 flex w-[48%] items-center justify-end pr-5 xl:pr-10"
-          aria-hidden="true"
-        >
-          <Suspense fallback={<HeroFallback />}>
-            <HeroScene active={inView} />
-          </Suspense>
-        </div>
-      ) : (
-        <HeroFallback />
-      )}
-
-      <div className="container-x relative z-10">
+      <div className="container-x relative z-10 mx-auto grid w-full max-w-7xl items-center gap-8 sm:gap-10 lg:grid-cols-12 lg:gap-x-8 xl:gap-x-12">
+        {/* Hero content */}
         <motion.div
           variants={stagger}
           initial="hidden"
           animate={ready ? 'show' : 'hidden'}
-          className={`max-w-3xl ${enable3D ? 'lg:max-w-lg xl:max-w-xl' : ''}`}
+          className="min-w-0 lg:col-span-6"
           style={
-            prefersReducedMotion
+            reduceMotion
               ? undefined
-              : {
-                  x: textX,
-                  opacity: textOpacity,
-                }
+              : { x: textX, opacity: textOpacity }
           }
         >
-          {/* Eyebrow */}
-          <motion.span
-            variants={fadeUp}
-            className="mb-7 inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/40 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-900 backdrop-blur-md sm:text-sm sm:tracking-[0.22em]"
-          >
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-500 opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-orange-500" />
-            </span>
+          
 
-            Technology · Innovation · Growth
-          </motion.span>
-
-          {/* Main heading */}
           <motion.h1
             variants={headline}
-            className="font-display text-4xl font-bold leading-[1.08] tracking-tight text-slate-900 sm:text-6xl lg:text-6xl xl:text-7xl"
+            className="max-w-2xl font-display text-[clamp(2rem,4.2vw,3.75rem)] font-bold leading-[1.07] tracking-[-0.045em] text-slate-950 [text-wrap:balance]"
           >
             {WORDS.map((item) => (
               <motion.span
                 key={item.t}
                 variants={word}
-                className={`mr-[0.28em] inline-block ${
+                className={`mr-[0.22em] inline-block ${
                   item.g
-                    ? 'bg-gradient-to-r from-orange-600 via-rose-600 to-indigo-700 bg-clip-text text-transparent'
+                    ? 'bg-gradient-to-r from-indigo-700 via-violet-600 to-violet-500 bg-clip-text text-transparent'
                     : ''
                 }`}
               >
@@ -234,46 +219,68 @@ export default function Hero({ ready }) {
             ))}
           </motion.h1>
 
-          {/* Description */}
           <motion.p
             variants={fadeUp}
-            className="mt-7 max-w-2xl text-base leading-relaxed text-slate-700 sm:text-xl"
+            className="mt-5 max-w-xl text-[13px] leading-7 text-slate-700 sm:mt-6 sm:text-[15px] sm:leading-8"
           >
-            We help businesses grow through modern software engineering,
-            web applications, and AI-powered solutions built around
-            real-world needs.
+            We help businesses grow through modern software
+            engineering, web applications, and AI-powered solutions
+            built around real-world needs.
           </motion.p>
 
-          {/* Action buttons */}
           <motion.div
             variants={fadeUp}
-            className="mt-10 flex flex-col gap-4 sm:flex-row"
+            className="mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4"
           >
             <button
+              type="button"
               onClick={() => goTo('services')}
-              className="group inline-flex items-center justify-center gap-2 rounded-full bg-slate-950 px-7 py-3.5 font-semibold text-white transition hover:bg-slate-800"
+              className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-slate-950 px-6 py-3 text-[13px] font-semibold text-white shadow-lg shadow-slate-950/10 transition duration-200 hover:-translate-y-0.5 hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-100 sm:px-7 sm:text-sm"
             >
               Explore Our Services
-              <FiArrowRight className="transition-transform group-hover:translate-x-1" />
+              <FiArrowRight
+                className="transition-transform duration-200 group-hover:translate-x-1"
+                aria-hidden="true"
+              />
             </button>
 
             <button
+              type="button"
               onClick={() => goTo('contact')}
-              className="inline-flex items-center justify-center rounded-full border border-slate-900 px-7 py-3.5 font-semibold text-slate-900 transition hover:bg-slate-900 hover:text-white"
+              className="inline-flex min-h-12 items-center justify-center rounded-full border border-slate-900/70 bg-white/10 px-6 py-3 text-[13px] font-semibold text-slate-950 transition duration-200 hover:-translate-y-0.5 hover:bg-white/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2 focus-visible:ring-offset-orange-100 sm:px-7 sm:text-sm"
             >
               Contact Us
             </button>
           </motion.div>
         </motion.div>
+
+        {/* Existing animated robot scene */}
+        <div className="min-w-0 lg:col-span-6">
+          <SceneFrame
+            ready={ready}
+            active={inView && !lowEnd && !reduceMotion}
+          />
+        </div>
       </div>
 
       {/* Scroll indicator */}
       <button
+        type="button"
         onClick={() => goTo('services')}
         aria-label="Scroll to services"
-        className="absolute bottom-6 left-1/2 hidden -translate-x-1/2 animate-bounce text-slate-600 transition hover:text-slate-950 sm:block"
+        className="absolute bottom-5 left-1/2 hidden -translate-x-1/2 rounded-full p-2 text-slate-700 transition hover:bg-white/30 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 lg:block"
       >
-        <FiChevronDown size={28} />
+        <motion.span
+          animate={reduceMotion ? undefined : { y: [0, 5, 0] }}
+          transition={{
+            duration: 1.6,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+          className="block"
+        >
+          <FiChevronDown size={25} aria-hidden="true" />
+        </motion.span>
       </button>
     </section>
   )
