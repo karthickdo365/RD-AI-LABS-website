@@ -223,9 +223,7 @@ export default function Hero({ ready = true }) {
             variants={fadeUp}
             className="mt-5 max-w-xl text-[13px] leading-7 text-slate-700 sm:mt-6 sm:text-[15px] sm:leading-8"
           >
-            We help businesses grow through modern software
-            engineering, web applications, and AI-powered solutions
-            built around real-world needs.
+             Backed by over two decades of solid industry experience, we empower businesses to scale through modern software engineering, web applications, and AI-driven solutions built for real-world impact.
           </motion.p>
 
           <motion.div

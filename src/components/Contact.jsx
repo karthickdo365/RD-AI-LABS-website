@@ -12,7 +12,6 @@ import {
   FiX,
 } from 'react-icons/fi'
 import { FaWhatsapp } from 'react-icons/fa'
-import { COMPANY } from '../data'
 
 const EMPTY_FORM = {
   name: '',
@@ -138,24 +137,22 @@ export default function Contact() {
   const [status, setStatus] = useState({ type: '', message: '' })
   const [mapOpen, setMapOpen] = useState(false)
 
-  const email = COMPANY.email || 'hello@yourdomain.com'
-  const phone = COMPANY.phone || '+91 00000 00000'
-  const address =
-    COMPANY.address || 'Your Office Address, City, State, Country'
+  const email = 'contact@rdailabs.com'
+  const phone = '+91 77088 91568'
+  const address = '366/145/S, 3rd Gandhi Rd, Attur, TN 636102, India'
+  const officeCoordinates = '11.598776516480894,78.59249654807462'
 
-  const whatsappNumber = String(
-    COMPANY.whatsapp || COMPANY.phone || ''
-  ).replace(/\D/g, '')
+  const whatsappNumber = phone.replace(/\D/g, '')
 
   const whatsappUrl = whatsappNumber
     ? `https://wa.me/${whatsappNumber}`
     : null
 
   const mapsUrl =
-    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`
+    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(officeCoordinates)}`
 
   const mapsEmbedUrl =
-    `https://www.google.com/maps?q=${encodeURIComponent(address)}&output=embed`
+    `https://www.google.com/maps?q=${encodeURIComponent(officeCoordinates)}&output=embed`
 
   useEffect(() => {
     if (!mapOpen) return undefined
@@ -275,12 +272,13 @@ export default function Contact() {
               </p>
 
               <h1 className="mt-4 font-display text-[clamp(2rem,3.6vw,3rem)] font-bold leading-[1.1] tracking-tight text-slate-950">
-                Let’s build something meaningful
+                Let’s build the future together.
               </h1>
 
               <p className="mt-5 max-w-md text-base leading-7 text-slate-800">
-                Have a project in mind? Tell us what you need and we’ll get
-                back to you with the next steps.
+                Have an idea but not sure how to take it forward? We’re here to help.
+                Get in touch with us today—together, we can bring your vision to life
+                and turn your ideas into reality.
               </p>
 
               {/* Contact details — one clean panel with dividers */}

@@ -36,8 +36,7 @@ const MISSION_VISION = [
   {
     title: 'Our Vision',
     description:
-      ABOUT?.vision ||
-      'To make modern technology more useful, accessible, and impactful through thoughtful innovation.',
+      'We exist to Tap the Untapped. We empower brilliant local talent with cutting-edge AI tools to solve real-world business challenges and deliver exceptional customer experiences.',
     icon: FiEye,
     accent: 'bg-orange-100 text-orange-700',
   },
