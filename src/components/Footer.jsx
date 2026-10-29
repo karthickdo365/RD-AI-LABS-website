@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { FaLinkedinIn, FaInstagram, FaGithub } from 'react-icons/fa'
+import { FaLinkedinIn, FaInstagram, FaGithub, FaFacebookF } from 'react-icons/fa'
 import { FaXTwitter } from 'react-icons/fa6'
 import { FiArrowUp } from 'react-icons/fi'
 import { COMPANY, NAV_LINKS } from '../data'
@@ -10,12 +10,20 @@ const LINK =
   'relative inline-block text-white transition-colors hover:text-white ' +
   "after:absolute after:-bottom-0.5 after:left-0 after:h-0.5 after:w-full after:origin-left after:scale-x-0 after:bg-gradient-to-r after:from-orange-500 after:via-rose-500 after:to-indigo-600 after:transition after:duration-300 hover:after:scale-x-100 motion-reduce:after:transition-none"
 
+// Social profile links
+const SOCIAL_LINKS = {
+  linkedin: 'https://www.linkedin.com/in/rd-ai-labs-7a2ab1443/',
+  instagram: 'https://www.instagram.com/rdailabsattur/',
+  facebook: 'https://www.facebook.com/profile.php?id=61595078384135',
+}
+
 export default function Footer() {
   const goTo = useGoTo()
 
   const socials = [
-    { icon: FaLinkedinIn, href: COMPANY.social.linkedin, label: 'LinkedIn' },
-    { icon: FaInstagram, href: COMPANY.social.instagram, label: 'Instagram' },
+    { icon: FaLinkedinIn, href: SOCIAL_LINKS.linkedin, label: 'LinkedIn' },
+    { icon: FaInstagram, href: SOCIAL_LINKS.instagram, label: 'Instagram' },
+    { icon: FaFacebookF, href: SOCIAL_LINKS.facebook, label: 'Facebook' },
     { icon: FaXTwitter, href: COMPANY.social.x, label: 'X' },
     { icon: FaGithub, href: COMPANY.social.github, label: 'GitHub' },
   ]
@@ -76,7 +84,7 @@ export default function Footer() {
             <h3 className="mb-4 font-display text-lg font-extrabold uppercase tracking-tight text-white">
               Connect
             </h3>
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-3">
               {socials.map((s) => (
                 <a
                   key={s.label}

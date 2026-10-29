@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react'
 import {
   AnimatePresence,
@@ -26,14 +27,14 @@ const FOCUS =
 function BrandLogo() {
   return (
     <span className="flex items-center gap-3">
-      <span className="relative inline-flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-[#0E1330]/10 transition duration-300 group-hover:shadow-md group-hover:ring-[#4F5BFF]/40 sm:h-11 sm:w-11">
+      <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center sm:h-11 sm:w-11">
         <img
           src="/rd-ai-labs-logo.png"
-          alt=""
+          alt="RD AI Labs"
           width={44}
           height={44}
           draggable={false}
-          className="h-full w-full object-cover"
+          className="h-full w-full object-contain"
         />
       </span>
 
@@ -41,7 +42,6 @@ function BrandLogo() {
         <span className="whitespace-nowrap font-display text-[17px] font-semibold tracking-[-0.02em] text-[#0E1330] sm:text-lg">
           RD AI Labs
         </span>
-        
       </span>
     </span>
   )
@@ -57,40 +57,82 @@ export default function Navbar() {
   const goTo = useGoTo()
 
   const { scrollYProgress } = useScroll()
+
   const progress = useSpring(scrollYProgress, {
     stiffness: 140,
     damping: 28,
     mass: 0.3,
   })
 
+  // Normalize the current URL for route matching.
+  const currentPath = pathname
+    .replace(/\/+$/, '')
+    .toLowerCase() || '/'
+
+  // Match a non-homepage route to its navigation item.
+  const getRouteActiveId = () => {
+    if (currentPath === '/') return null
+
+    const matchingLink = NAV_LINKS.find((link) => {
+      const linkId = link.id.toLowerCase()
+      const linkPath = `/${linkId}`
+
+      return (
+        currentPath === linkPath ||
+        currentPath.startsWith(`${linkPath}/`)
+      )
+    })
+
+    return matchingLink?.id ?? null
+  }
+
+  const routeActiveId = getRouteActiveId()
+
   // Track page scroll for navbar styling.
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20)
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20)
+    }
+
     handleScroll()
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
+
+    window.addEventListener('scroll', handleScroll, {
+      passive: true,
+    })
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+    }
   }, [])
 
-  // Detect the currently visible section.
+  // Detect the currently visible section on the homepage.
   useEffect(() => {
-    if (pathname !== '/') {
-      setActive('')
+    if (currentPath !== '/') {
+      setActive(routeActiveId || '')
       return undefined
     }
 
-    const sections = NAV_LINKS.map((link) =>
-      document.getElementById(link.id)
-    ).filter(Boolean)
+    const sections = NAV_LINKS
+      .map((link) => document.getElementById(link.id))
+      .filter(Boolean)
 
-    if (!sections.length) return undefined
+    if (!sections.length) {
+      setActive('home')
+      return undefined
+    }
 
     const observer = new IntersectionObserver(
       (entries) => {
         const visible = entries
           .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)
+          .sort(
+            (a, b) =>
+              b.intersectionRatio - a.intersectionRatio
+          )
 
-        if (visible.length) setActive(visible[0].target.id)
+        if (visible.length) {
+          setActive(visible[0].target.id)
+        }
       },
       {
         rootMargin: '-30% 0px -55% 0px',
@@ -99,18 +141,20 @@ export default function Navbar() {
     )
 
     sections.forEach((section) => observer.observe(section))
+
     return () => observer.disconnect()
-  }, [pathname])
+  }, [currentPath, routeActiveId])
 
   // Prevent background scrolling while the mobile menu is open.
   useEffect(() => {
     document.body.style.overflow = open ? 'hidden' : ''
+
     return () => {
       document.body.style.overflow = ''
     }
   }, [open])
 
-  // Close mobile navigation when the route changes.
+  // Close the mobile menu when the route changes.
   useEffect(() => {
     setOpen(false)
   }, [pathname])
@@ -118,16 +162,33 @@ export default function Navbar() {
   // Allow Escape to close the mobile menu.
   useEffect(() => {
     if (!open) return undefined
+
     const onKey = (event) => {
-      if (event.key === 'Escape') setOpen(false)
+      if (event.key === 'Escape') {
+        setOpen(false)
+      }
     }
+
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+
+    return () => {
+      window.removeEventListener('keydown', onKey)
+    }
   }, [open])
 
   const handleNavigation = (id) => {
     setOpen(false)
     goTo(id)
+  }
+
+  // On inner pages, use the current route.
+  // On the homepage, use the currently visible section.
+  const isLinkActive = (link) => {
+    if (currentPath !== '/') {
+      return routeActiveId === link.id
+    }
+
+    return active === link.id
   }
 
   const linkClass = (isActive) =>
@@ -137,7 +198,8 @@ export default function Navbar() {
         : 'text-[#0E1330]/60 hover:text-[#0E1330]'
     }`
 
-  const ctaClass = `group inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-[#0E1330] py-1.5 pl-5 pr-1.5 text-sm font-semibold text-white shadow-[0_10px_24px_-10px_rgba(14,19,48,0.55)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_14px_30px_-12px_rgba(79,91,255,0.6)] ${FOCUS}`
+  const ctaClass =
+    `group inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-[#0E1330] py-1.5 pl-5 pr-1.5 text-sm font-semibold text-white shadow-[0_10px_24px_-10px_rgba(14,19,48,0.55)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_14px_30px_-12px_rgba(79,91,255,0.6)] ${FOCUS}`
 
   const ctaIcon =
     'flex h-7 w-7 items-center justify-center rounded-full bg-white text-[#0E1330] transition duration-300 group-hover:bg-[#4F5BFF] group-hover:text-white'
@@ -165,14 +227,14 @@ export default function Navbar() {
         {/* Center: desktop navigation */}
         <ul className="hidden flex-1 items-center justify-center gap-0.5 lg:flex">
           {NAV_LINKS.map((link) => {
-            const isActive = active === link.id && pathname === '/'
+            const isActive = isLinkActive(link)
 
             return (
               <li key={link.id}>
                 <button
                   type="button"
                   onClick={() => handleNavigation(link.id)}
-                  aria-current={isActive ? 'location' : undefined}
+                  aria-current={isActive ? 'page' : undefined}
                   className={linkClass(isActive)}
                 >
                   {isActive && (
@@ -186,6 +248,7 @@ export default function Navbar() {
                       }}
                     />
                   )}
+
                   {link.short}
                 </button>
               </li>
@@ -201,15 +264,21 @@ export default function Navbar() {
             className={`${ctaClass} hidden sm:inline-flex`}
           >
             Talk to us
+
             <span className={ctaIcon}>
-              <FiArrowUpRight size={15} aria-hidden="true" />
+              <FiArrowUpRight
+                size={15}
+                aria-hidden="true"
+              />
             </span>
           </button>
 
           <button
             type="button"
             onClick={() => setOpen((previous) => !previous)}
-            aria-label={open ? 'Close navigation' : 'Open navigation'}
+            aria-label={
+              open ? 'Close navigation' : 'Open navigation'
+            }
             aria-expanded={open}
             aria-controls="mobile-navigation"
             className={`inline-flex min-h-10 min-w-10 items-center justify-center rounded-full border border-[#0E1330]/10 bg-white/80 text-[#0E1330] transition hover:border-[#0E1330]/25 hover:bg-white lg:hidden ${FOCUS}`}
@@ -218,16 +287,36 @@ export default function Navbar() {
               <motion.span
                 key={open ? 'close' : 'menu'}
                 initial={
-                  reduce ? false : { opacity: 0, rotate: -25, scale: 0.85 }
+                  reduce
+                    ? false
+                    : {
+                        opacity: 0,
+                        rotate: -25,
+                        scale: 0.85,
+                      }
                 }
-                animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                animate={{
+                  opacity: 1,
+                  rotate: 0,
+                  scale: 1,
+                }}
                 exit={
-                  reduce ? undefined : { opacity: 0, rotate: 25, scale: 0.85 }
+                  reduce
+                    ? undefined
+                    : {
+                        opacity: 0,
+                        rotate: 25,
+                        scale: 0.85,
+                      }
                 }
                 transition={{ duration: 0.15 }}
                 className="flex"
               >
-                {open ? <FiX size={20} /> : <FiMenu size={20} />}
+                {open ? (
+                  <FiX size={20} />
+                ) : (
+                  <FiMenu size={20} />
+                )}
               </motion.span>
             </AnimatePresence>
           </button>
@@ -252,21 +341,27 @@ export default function Navbar() {
         {open && (
           <motion.div
             id="mobile-navigation"
-            initial={reduce ? false : { opacity: 0, y: -8, scale: 0.99 }}
+            initial={
+              reduce ? false : { opacity: 0, y: -8, scale: 0.99 }
+            }
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={reduce ? undefined : { opacity: 0, y: -8, scale: 0.99 }}
+            exit={
+              reduce ? undefined : { opacity: 0, y: -8, scale: 0.99 }
+            }
             transition={{ duration: 0.2, ease: EASE }}
             className="mx-auto mt-2 max-w-7xl overflow-y-auto rounded-[26px] border border-white/90 bg-white/95 p-3 shadow-[0_24px_60px_-20px_rgba(14,19,48,0.35)] ring-1 ring-[#0E1330]/5 backdrop-blur-xl lg:hidden"
             style={{ maxHeight: 'calc(100dvh - 110px)' }}
           >
             <ul className="flex flex-col gap-1">
               {NAV_LINKS.map((link, index) => {
-                const isActive = active === link.id && pathname === '/'
+                const isActive = isLinkActive(link)
 
                 return (
                   <motion.li
                     key={link.id}
-                    initial={reduce ? false : { opacity: 0, x: -8 }}
+                    initial={
+                      reduce ? false : { opacity: 0, x: -8 }
+                    }
                     animate={{ opacity: 1, x: 0 }}
                     transition={{
                       duration: 0.2,
@@ -276,7 +371,7 @@ export default function Navbar() {
                     <button
                       type="button"
                       onClick={() => handleNavigation(link.id)}
-                      aria-current={isActive ? 'location' : undefined}
+                      aria-current={isActive ? 'page' : undefined}
                       className={`flex w-full items-center justify-between rounded-2xl px-4 py-3.5 text-left text-[15px] font-medium transition-colors ${FOCUS} ${
                         isActive
                           ? 'bg-[#0E1330]/[0.06] text-[#0E1330]'
@@ -284,6 +379,7 @@ export default function Navbar() {
                       }`}
                     >
                       {link.label}
+
                       {isActive && (
                         <span className="h-2 w-2 rounded-full bg-[#4F5BFF]" />
                       )}
@@ -299,8 +395,12 @@ export default function Navbar() {
               className={`${ctaClass} mt-3 w-full justify-between py-2 pl-6 pr-2`}
             >
               Talk to us
+
               <span className={`${ctaIcon} h-8 w-8`}>
-                <FiArrowUpRight size={16} aria-hidden="true" />
+                <FiArrowUpRight
+                  size={16}
+                  aria-hidden="true"
+                />
               </span>
             </button>
           </motion.div>
